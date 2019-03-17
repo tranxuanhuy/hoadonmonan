@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using Finisar.SQLite;
+using SQLLite;
 
 namespace SQLLiteDemo
 {
@@ -172,6 +173,7 @@ namespace SQLLiteDemo
             this.button1.TabIndex = 12;
             this.button1.Text = "print";
             this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // button2
             // 
@@ -387,6 +389,19 @@ namespace SQLLiteDemo
         private void button2_Click(object sender, EventArgs e)
         {
             dt.Clear();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            DataSet ds = new DataSet();
+            ds.Tables.Add(dt);
+            ds.WriteXmlSchema("Sample.xml");
+
+            CrystalReport1 cr = new CrystalReport1();
+            cr.SetDataSource(ds);
+            cr.PrintToPrinter(1, false, 0, 0);
+
+            ds.Clear();
         }
     }
 }
