@@ -399,9 +399,10 @@ namespace SQLLiteDemo
 
             CrystalReport1 cr = new CrystalReport1();
             cr.SetDataSource(ds);
+            cr.SetParameterValue("total", label2.Text);
             cr.PrintToPrinter(1, false, 0, 0);
 
-            ds.Clear();
+            ds.Tables.Remove(dt);
         }
     }
 }
