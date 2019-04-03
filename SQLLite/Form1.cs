@@ -4,7 +4,9 @@ using System.ComponentModel;
 using System.Data;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
+using CrystalDecisions.Shared;
 using Finisar.SQLite;
 using SQLLite;
 
@@ -32,6 +34,7 @@ namespace SQLLiteDemo
         private Label label2;
         private Button button1;
         private Button button2;
+        private Button button3;
 
 
 
@@ -40,8 +43,9 @@ namespace SQLLiteDemo
         /// Required designer variable.
         /// </summary>
         private Container components = null;
+        private float sum=0;
 
-		public Form1()
+        public Form1()
 		{
 			//
 			// Required for Windows Form Designer support
@@ -86,6 +90,7 @@ namespace SQLLiteDemo
             this.label2 = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -122,7 +127,6 @@ namespace SQLLiteDemo
             // 
             // txtDesc
             // 
-            this.txtDesc.Enabled = false;
             this.txtDesc.Location = new System.Drawing.Point(837, 16);
             this.txtDesc.Multiline = true;
             this.txtDesc.Name = "txtDesc";
@@ -185,10 +189,21 @@ namespace SQLLiteDemo
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(918, 86);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(75, 23);
+            this.button3.TabIndex = 14;
+            this.button3.Text = "total gen";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
             // Form1
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
             this.ClientSize = new System.Drawing.Size(1001, 399);
+            this.Controls.Add(this.button3);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.label2);
@@ -358,7 +373,7 @@ namespace SQLLiteDemo
         private void updateTotalValue()
         {
             //update total
-            float sum = 0;
+            sum = 0;
             DataRow[] all = dt.AsEnumerable().ToArray();
             foreach (var item in all)
             {
@@ -389,6 +404,7 @@ namespace SQLLiteDemo
         private void button2_Click(object sender, EventArgs e)
         {
             dt.Clear();
+            sum = 0;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -397,12 +413,90 @@ namespace SQLLiteDemo
             ds.Tables.Add(dt);
             ds.WriteXmlSchema("Sample.xml");
 
-            CrystalReport1 cr = new CrystalReport1();
+            CrystalReport2 cr = new CrystalReport2();
             cr.SetDataSource(ds);
             cr.SetParameterValue("total", label2.Text);
             cr.PrintToPrinter(1, false, 0, 0);
-
+            //cr.PrintOptions.PaperSize = PaperSize.PaperA5;
+            //cr.PrintOptions.PaperOrientation = CrystalDecisions.Shared.PaperOrientation.Landscape;
             ds.Tables.Remove(dt);
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            float totalprice = float.Parse(this.txtDesc.Text);
+            while (totalprice!=sum)
+            {
+                dt.Clear();
+
+                //dau,banh trang, trung cut
+                Random rnd = new Random();
+                int month = rnd.Next(28, 30);
+                {
+
+                    DataRow[] foundAuthors = DS.Tables[0].AsEnumerable().Skip(month - 1).ToArray();
+                    foundAuthors[0]["STT"] = dt.Rows.Count + 1;
+                    foundAuthors[0]["sl"] = (int)totalprice / 1000000;
+                    foundAuthors[0]["TT"] = String.Format("{0:0,0}", float.Parse(foundAuthors[0]["sl"].ToString(), CultureInfo.InvariantCulture) * float.Parse(foundAuthors[0]["dg"].ToString().Replace(".", ""), CultureInfo.InvariantCulture));
+
+                    dt.Rows.Add(foundAuthors[0].ItemArray);
+                    updateTotalValue();
+                }
+
+
+
+                //tien mon an 90%
+                while ((sum / totalprice) < 0.8)
+                {
+                    Thread.Sleep(1000);
+                    rnd = new Random();
+                    month = rnd.Next(40, 183);
+
+                    DataRow[] foundAuthors = DS.Tables[0].AsEnumerable().Skip(month).ToArray();
+                    foundAuthors[0]["STT"] = dt.Rows.Count + 1;
+                    foundAuthors[0]["sl"] = (int)totalprice / 900000; ;
+                    foundAuthors[0]["TT"] = String.Format("{0:0,0}", float.Parse(foundAuthors[0]["sl"].ToString(), CultureInfo.InvariantCulture) * float.Parse(foundAuthors[0]["dg"].ToString().Replace(".", ""), CultureInfo.InvariantCulture));
+
+                    dt.Rows.Add(foundAuthors[0].ItemArray);
+                    updateTotalValue();
+                }
+
+                if ((sum / totalprice) > 0.85)
+                {
+                    continue;
+                }
+                //nc ngot,suoi
+                month = rnd.Next(31, 32);
+                {
+
+                    DataRow[] foundAuthors = DS.Tables[0].AsEnumerable().Skip(month - 1).ToArray();
+                    foundAuthors[0]["STT"] = dt.Rows.Count + 1;
+                    foundAuthors[0]["sl"] = rnd.Next(1, 3);
+                    foundAuthors[0]["TT"] = String.Format("{0:0,0}", float.Parse(foundAuthors[0]["sl"].ToString(), CultureInfo.InvariantCulture) * float.Parse(foundAuthors[0]["dg"].ToString().Replace(".", ""), CultureInfo.InvariantCulture));
+
+                    dt.Rows.Add(foundAuthors[0].ItemArray);
+                    updateTotalValue();
+                }
+
+                //con lai tien bia
+                for (int i = 33; i < 38; i++)
+                {
+                    DataRow[] foundAuthors = DS.Tables[0].AsEnumerable().Skip(i - 1).ToArray();
+
+                    if ((totalprice - sum) % (float.Parse(foundAuthors[0]["dg"].ToString())) == 0)
+                    {
+
+                        foundAuthors[0]["STT"] = dt.Rows.Count + 1;
+                        foundAuthors[0]["sl"] = (totalprice - sum) / (float.Parse(foundAuthors[0]["dg"].ToString()));
+                        foundAuthors[0]["TT"] = String.Format("{0:0,0}", float.Parse(foundAuthors[0]["sl"].ToString(), CultureInfo.InvariantCulture) * float.Parse(foundAuthors[0]["dg"].ToString().Replace(".", ""), CultureInfo.InvariantCulture));
+
+                        dt.Rows.Add(foundAuthors[0].ItemArray);
+                        updateTotalValue();
+                        break;
+                    }
+                } 
+            }
+            Console.Beep();
         }
     }
 }
