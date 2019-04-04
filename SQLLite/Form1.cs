@@ -418,84 +418,109 @@ namespace SQLLiteDemo
             cr.SetParameterValue("total", label2.Text);
             cr.PrintToPrinter(1, false, 0, 0);
             //cr.PrintOptions.PaperSize = PaperSize.PaperA5;
-            //cr.PrintOptions.PaperOrientation = CrystalDecisions.Shared.PaperOrientation.Landscape;
+            //cr.PrintOptions.PaperOrientation = CrystalDecisions.Shared.PaperOrientation.Portrait;
             ds.Tables.Remove(dt);
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            float totalprice = float.Parse(this.txtDesc.Text);
-            while (totalprice!=sum)
+            float totalprice = float.Parse(this.txtDesc.Text)*1000;
+
+            do
             {
-                dt.Clear();
-
-                //dau,banh trang, trung cut
-                Random rnd = new Random();
-                int month = rnd.Next(28, 30);
+                sum = 0;
+                while (totalprice != sum)
                 {
+                    dt.Clear();
 
-                    DataRow[] foundAuthors = DS.Tables[0].AsEnumerable().Skip(month - 1).ToArray();
-                    foundAuthors[0]["STT"] = dt.Rows.Count + 1;
-                    foundAuthors[0]["sl"] = (int)totalprice / 1000000;
-                    foundAuthors[0]["TT"] = String.Format("{0:0,0}", float.Parse(foundAuthors[0]["sl"].ToString(), CultureInfo.InvariantCulture) * float.Parse(foundAuthors[0]["dg"].ToString().Replace(".", ""), CultureInfo.InvariantCulture));
-
-                    dt.Rows.Add(foundAuthors[0].ItemArray);
-                    updateTotalValue();
-                }
-
-
-
-                //tien mon an 90%
-                while ((sum / totalprice) < 0.8)
-                {
-                    Thread.Sleep(1000);
-                    rnd = new Random();
-                    month = rnd.Next(40, 183);
-
-                    DataRow[] foundAuthors = DS.Tables[0].AsEnumerable().Skip(month).ToArray();
-                    foundAuthors[0]["STT"] = dt.Rows.Count + 1;
-                    foundAuthors[0]["sl"] = (int)totalprice / 900000; ;
-                    foundAuthors[0]["TT"] = String.Format("{0:0,0}", float.Parse(foundAuthors[0]["sl"].ToString(), CultureInfo.InvariantCulture) * float.Parse(foundAuthors[0]["dg"].ToString().Replace(".", ""), CultureInfo.InvariantCulture));
-
-                    dt.Rows.Add(foundAuthors[0].ItemArray);
-                    updateTotalValue();
-                }
-
-                if ((sum / totalprice) > 0.85)
-                {
-                    continue;
-                }
-                //nc ngot,suoi
-                month = rnd.Next(31, 32);
-                {
-
-                    DataRow[] foundAuthors = DS.Tables[0].AsEnumerable().Skip(month - 1).ToArray();
-                    foundAuthors[0]["STT"] = dt.Rows.Count + 1;
-                    foundAuthors[0]["sl"] = rnd.Next(1, 3);
-                    foundAuthors[0]["TT"] = String.Format("{0:0,0}", float.Parse(foundAuthors[0]["sl"].ToString(), CultureInfo.InvariantCulture) * float.Parse(foundAuthors[0]["dg"].ToString().Replace(".", ""), CultureInfo.InvariantCulture));
-
-                    dt.Rows.Add(foundAuthors[0].ItemArray);
-                    updateTotalValue();
-                }
-
-                //con lai tien bia
-                for (int i = 33; i < 38; i++)
-                {
-                    DataRow[] foundAuthors = DS.Tables[0].AsEnumerable().Skip(i - 1).ToArray();
-
-                    if ((totalprice - sum) % (float.Parse(foundAuthors[0]["dg"].ToString())) == 0)
+                    //random 1 phan ruou hoac thuoc hoac ko 
+                    Random rnd = new Random();
+                    int month = rnd.Next(1, 26);
+                    if (rnd.Next(0, 10)%2==0)
                     {
-
+                        DataRow[] foundAuthors = DS.Tables[0].AsEnumerable().Skip(month - 1).ToArray();
                         foundAuthors[0]["STT"] = dt.Rows.Count + 1;
-                        foundAuthors[0]["sl"] = (totalprice - sum) / (float.Parse(foundAuthors[0]["dg"].ToString()));
+                        foundAuthors[0]["sl"] = 1;
                         foundAuthors[0]["TT"] = String.Format("{0:0,0}", float.Parse(foundAuthors[0]["sl"].ToString(), CultureInfo.InvariantCulture) * float.Parse(foundAuthors[0]["dg"].ToString().Replace(".", ""), CultureInfo.InvariantCulture));
 
                         dt.Rows.Add(foundAuthors[0].ItemArray);
                         updateTotalValue();
-                        break;
+                    }
+                    //dau,banh trang, trung cut
+
+                    month = rnd.Next(28, 30);
+                    {
+
+                        DataRow[] foundAuthors = DS.Tables[0].AsEnumerable().Skip(month - 1).ToArray();
+                        foundAuthors[0]["STT"] = dt.Rows.Count + 1;
+                        foundAuthors[0]["sl"] = (int)totalprice / 1000000;
+                        foundAuthors[0]["TT"] = String.Format("{0:0,0}", float.Parse(foundAuthors[0]["sl"].ToString(), CultureInfo.InvariantCulture) * float.Parse(foundAuthors[0]["dg"].ToString().Replace(".", ""), CultureInfo.InvariantCulture));
+
+                        dt.Rows.Add(foundAuthors[0].ItemArray);
+                        updateTotalValue();
+                    }
+
+
+
+                    //tien mon an 90%
+                    while ((sum / totalprice) < 0.85)
+                    {
+                        Thread.Sleep(1000);
+                        rnd = new Random();
+                        month = rnd.Next(40, 183);
+
+                        DataRow[] foundAuthors = DS.Tables[0].AsEnumerable().Skip(month).ToArray();
+                        foundAuthors[0]["STT"] = dt.Rows.Count + 1;
+                        float sl = (int)totalprice / 1800000 + rnd.Next(0, 2);
+
+                        //dvt la kg thi them so thap phan
+                        if (foundAuthors[0]["dvt"].ToString().ToLower().Equals("kg"))
+                        {
+                            sl = sl + (float)rnd.Next(0, 3) / (float)4;
+                        }
+                        foundAuthors[0]["sl"] = sl;
+                        foundAuthors[0]["TT"] = String.Format("{0:0,0}", float.Parse(foundAuthors[0]["sl"].ToString(), CultureInfo.InvariantCulture) * float.Parse(foundAuthors[0]["dg"].ToString().Replace(".", ""), CultureInfo.InvariantCulture));
+
+                        dt.Rows.Add(foundAuthors[0].ItemArray);
+                        updateTotalValue();
+                    }
+
+                    if ((sum / totalprice) > 0.90)
+                    {
+                        continue;
+                    }
+                    //nc ngot,suoi
+                    month = rnd.Next(31, 32);
+                    {
+
+                        DataRow[] foundAuthors = DS.Tables[0].AsEnumerable().Skip(month - 1).ToArray();
+                        foundAuthors[0]["STT"] = dt.Rows.Count + 1;
+                        foundAuthors[0]["sl"] = rnd.Next(3, 5);
+                        foundAuthors[0]["TT"] = String.Format("{0:0,0}", float.Parse(foundAuthors[0]["sl"].ToString(), CultureInfo.InvariantCulture) * float.Parse(foundAuthors[0]["dg"].ToString().Replace(".", ""), CultureInfo.InvariantCulture));
+
+                        dt.Rows.Add(foundAuthors[0].ItemArray);
+                        updateTotalValue();
+                    }
+
+                    //con lai tien bia
+                    for (int i = 33; i < 38; i++)
+                    {
+                        DataRow[] foundAuthors = DS.Tables[0].AsEnumerable().Skip(i - 1).ToArray();
+
+                        if ((totalprice - sum) % (float.Parse(foundAuthors[0]["dg"].ToString())) == 0)
+                        {
+
+                            foundAuthors[0]["STT"] = dt.Rows.Count + 1;
+                            foundAuthors[0]["sl"] = (totalprice - sum) / (float.Parse(foundAuthors[0]["dg"].ToString()));
+                            foundAuthors[0]["TT"] = String.Format("{0:0,0}", float.Parse(foundAuthors[0]["sl"].ToString(), CultureInfo.InvariantCulture) * float.Parse(foundAuthors[0]["dg"].ToString().Replace(".", ""), CultureInfo.InvariantCulture));
+
+                            dt.Rows.Add(foundAuthors[0].ItemArray);
+                            updateTotalValue();
+                            break;
+                        }
                     }
                 } 
-            }
+            } while (dt.Rows.Count>11|| dt.Rows.Count < 6);
             Console.Beep();
         }
     }
